@@ -48,6 +48,8 @@ class DispersionCharacteristic:
     weff -- effective width of the waveguide in um (optional, default 3e-6 um) \n
     boundaryCond -- 1 is is totally unpinned and 2 is totally pinned boundary condition, 3 is a long wave limit, 4 is partially pinned \n
     dp -- for 4 BC, pinning parameter ranges from 0 to inf. 0 means totally unpinned \n
+    aniType -- magnetic anisotropy type, 0 - none (isotropic), 1 - uniaxial, 3 - cubic (not yet implemented). \n
+    aniK -- list of anisotropy constants, for aniType=0 is not used, for aniType=1 aniK=[Ku], for aniType=3 aniK=[K1, K2, K3].
     
     w0 -- parameter in Slavin-Kalinikos equation in rad*Hz/T w0 = mu0*gamma*Hext \n
     wM -- parameter in Slavin-Kalinikos equation in rad*Hz/T w0 = mu0*gamma*Ms \n
@@ -62,6 +64,7 @@ class DispersionCharacteristic:
     GetPropagationQVector \n
     GetSecondPerturbation \n
     GetDensityOfStates \n
+    DemagFactors \n
     Code example: \n
     #Here is an example of code
     kxi = np.linspace(1e-12, 150e6, 150) \n
@@ -72,7 +75,7 @@ class DispersionCharacteristic:
     lifetimePy = NiFeChar.GetLifetime()*1e9 #ns \n
     propLen = NiFeChar.GetPropLen()*1e6 #um \n
     """
-    def __init__(self, Bext, material, d, kxi = np.linspace(1e-12, 25e6, 200), theta = np.pi/2, phi = np.pi/2, weff = 3e-6, boundaryCond = 1, dp=0, Ku = 0):
+    def __init__(self, Bext, material, d, kxi = np.linspace(1e-12, 25e6, 200), theta = np.pi/2, phi = np.pi/2, weff = 3e-6, boundaryCond = 1, dp=0, aniType=0, aniK=[]):
         self.kxi = np.array(kxi)
         self.theta = theta
         self.phi= phi
@@ -88,6 +91,8 @@ class DispersionCharacteristic:
         self.dp = dp
         self.gamma = material.gamma
         self.mu0dH0 = material.mu0dH0
+        self.aniType = aniType
+        self.aniK = aniK
     def GetPropagationVector(self, n = 0, nc = -1, nT = 0):
         """ Gives dimensionless propagation vector \n
         The boundary condition is chosen based on the object property \n
@@ -233,8 +238,23 @@ class DispersionCharacteristic:
         phi = np.arctan((nT*np.pi/self.weff)/self.kxi) - self.phi
         Pnn = self.GetPropagationVector(n = n, nc = nc, nT = nT)
         Fnn = Pnn + np.power(np.sin(self.theta),2)*(1-Pnn*(1+np.power(np.cos(phi),2)) + self.wM*(Pnn*(1 - Pnn)*np.power(np.sin(phi),2))/(self.w0 + self.A*self.wM*np.power(k,2)))
+        demTens = self.DemagFactors(self.aniType, self.aniK)
         f = np.sqrt((self.w0 + self.A*self.wM*np.power(k,2))*(self.w0 + self.A*self.wM*np.power(k,2) + self.wM*Fnn))
         return f
+    def DemagFactors(self, aniType=0, aniK=[])  # Add direction of anis? (vector of direction for each axis)
+        """ Gives calculated demag factors based on selected anisotropy type \n
+        (uniaxial, cubic, ...).
+        Arguments:
+        aniType -- anisotropy type, 0 - none (isotropic), 1 - uniaxial, 3 - cubic.
+        aniK -- list of anisotropy constants in J/m3.
+        Returns:
+        demTens -- Tensor of demagnetisation factors, 2x2 matrix in the form [[Nxx, Nxy], [Nxy, Nyy]].
+        """
+        if aniType == 0:
+            return np.zeros((2,2))
+        elif aniType == 1:
+            nxx = -2*aniK[0]/
+            return
     def GetDispersionTacchi(self):
         """ Gives frequencies for defined k (Dispersion relation) \n
         The returned value is in the rad Hz \n
