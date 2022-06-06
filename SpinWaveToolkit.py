@@ -94,7 +94,7 @@ class DispersionCharacteristic:
         self.mu0dH0 = material.mu0dH0
         self.aniType = aniType
         self.aniK = aniK
-        self.ms = material.Ms
+        self.Ms = material.Ms
         self.aniDir = aniDir
     def GetPropagationVector(self, n = 0, nc = -1, nT = 0):
         """ Gives dimensionless propagation vector \n
@@ -241,18 +241,19 @@ class DispersionCharacteristic:
         phi = np.arctan((nT*np.pi/self.weff)/self.kxi) - self.phi
         Pnn = self.GetPropagationVector(n = n, nc = nc, nT = nT)
         Fnn = Pnn + np.power(np.sin(self.theta),2)*(1-Pnn*(1+np.power(np.cos(phi),2)) + self.wM*(Pnn*(1 - Pnn)*np.power(np.sin(phi),2))/(self.w0 + self.A*self.wM*np.power(k,2)))
-        Na = self.DemagFactors()
+        Na = self.DemagFactors(self.aniType, self.aniK, self.aniDir)
         Fnna = Na[0][0] + Na[1][1] + (Na[0][0]*Na[1][1] + Na[1][1]*np.sin(self.theta)**2-Na[0][1]**2)*self.wM/(self.w0+self.A*self.wM*k**2) +\
                (Na[1][1]*(np.cos(phi)**2-np.sin(self.theta)**2*(1-np.cos(phi)**2))+Na[0][0]*np.sin(phi)**2-Na[1][0]*np.cos(self.theta)*np.sin(2*phi))*Pnn*self.wM/(self.w0+self.A*self.wM*k**2)
+        # print("Fnna: ", Fnna)
         f = np.sqrt((self.w0 + self.A*self.wM*np.power(k,2))*(self.w0 + self.A*self.wM*np.power(k,2) + self.wM*(Fnn+Fnna)))
         return f
-    def DemagFactors(self, aniType=self.aniType, aniK=self.aniK, aniDir=self.aniDir)
+    def DemagFactors(self, aniType=0, aniK=[], aniDir=[]):
         """ Gives calculated demag factors based on selected anisotropy type \n
-        (uniaxial, cubic, ...).
-        Arguments:
-        aniType -- anisotropy type, 0 - none (isotropic), 1 - uniaxial, 3 - cubic.
-        aniK -- list of anisotropy constants in J/m3.
-        Returns:
+        (uniaxial, cubic, ...). \n
+        Arguments: \n
+        aniType -- anisotropy type, 0 - none (isotropic), 1 - uniaxial, 3 - cubic. \n
+        aniK -- list of anisotropy constants in J/m3. \n
+        Returns: \n
         demTens -- Tensor of demagnetisation factors, 2x2 matrix in the form [[Nxx, Nxy], [Nxy, Nyy]].
         """
         if aniType == 0:
