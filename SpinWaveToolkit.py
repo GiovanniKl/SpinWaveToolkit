@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# testing file from GitHub folder SpinWaveToolkit (as of 2022/06/06)
 """
 Created on Tue Aug 25 \n
 This module provides analytical tools in Spin wave physics
@@ -243,8 +244,9 @@ class DispersionCharacteristic:
         Fnn = Pnn + np.power(np.sin(self.theta),2)*(1-Pnn*(1+np.power(np.cos(phi),2)) + self.wM*(Pnn*(1 - Pnn)*np.power(np.sin(phi),2))/(self.w0 + self.A*self.wM*np.power(k,2)))
         Na = self.DemagFactors(self.aniType, self.aniK, self.aniDir)
         Fnna = Na[0][0] + Na[1][1] + (Na[0][0]*Na[1][1] + Na[1][1]*np.sin(self.theta)**2-Na[0][1]**2)*self.wM/(self.w0+self.A*self.wM*k**2) +\
-               (Na[1][1]*(np.cos(phi)**2-np.sin(self.theta)**2*(1-np.cos(phi)**2))+Na[0][0]*np.sin(phi)**2-Na[1][0]*np.cos(self.theta)*np.sin(2*phi))*Pnn*self.wM/(self.w0+self.A*self.wM*k**2)
+               (Na[1][1]*(np.cos(phi)**2-np.sin(self.theta)**2*(1+np.cos(phi)**2))+Na[0][0]*np.sin(phi)**2-Na[1][0]*np.cos(self.theta)*np.sin(2*phi))*Pnn*self.wM/(self.w0+self.A*self.wM*k**2)
         # print("Fnna: ", Fnna)
+        # print("Fnn: ", Fnn)
         f = np.sqrt((self.w0 + self.A*self.wM*np.power(k,2))*(self.w0 + self.A*self.wM*np.power(k,2) + self.wM*(Fnn+Fnna)))
         return f
     def DemagFactors(self, aniType=0, aniK=[], aniDir=[]):
